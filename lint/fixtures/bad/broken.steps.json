@@ -1,0 +1,13 @@
+{
+  "scenario": "mismatch",
+  "steps": [
+    { "do": "tap", "id": "first", "label": "two selectors" },
+    { "do": "typo" },
+    { "do": "type", "id": "field" },
+    { "do": "shot" },
+    { "do": "waitFor", "id": "x", "shot": "bad label" },
+    { "do": "waitFor", "id": "y", "shot": "01-dup" },
+    { "do": "waitFor", "id": "z", "shot": "01-dup", "hero": true },
+    { "do": "tap", "hero": true }
+  ]
+}

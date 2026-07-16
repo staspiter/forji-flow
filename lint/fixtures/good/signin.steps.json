@@ -1,0 +1,12 @@
+{
+  "scenario": "signin",
+  "steps": [
+    { "do": "launch", "state": "signedOut" },
+    { "do": "waitFor", "id": "signin.nickname" },
+    { "do": "type", "id": "signin.nickname", "text": "demo" },
+    { "do": "tap", "label": "Continue" },
+    { "do": "waitFor", "contains": "Welcome", "shot": "01-welcome", "hero": true },
+    { "do": "app:seedBoard", "rows": 3 },
+    { "do": "shot", "as": "02-seeded" }
+  ]
+}
