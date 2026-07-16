@@ -48,8 +48,8 @@ Interaction verbs take **exactly one** of:
 | `tap` | selector | tap the target |
 | `longPress` | selector | press ~1s |
 | `type` | selector, `text` | focus and type, focus-verify retried |
-| `waitFor` | selector | assert the target appears |
-| `waitGone` | selector | assert the target disappears |
+| `waitFor` | selector, `timeout` (ms, optional) | assert the target appears |
+| `waitGone` | selector, `timeout` (ms, optional) | assert the target disappears |
 | `assertEnabled` / `assertDisabled` | selector | assert the target's enabled state |
 | `drag` | `fromId`, `toId` | press-drag between two identified elements |
 | `dragReorder` | `from`, `to` | drag one list-reorder handle onto another (0-based index or label substring) |

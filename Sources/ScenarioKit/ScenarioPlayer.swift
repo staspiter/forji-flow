@@ -150,13 +150,13 @@ public final class ScenarioPlayer {
 
         case "waitFor":
             let el = try ctx.resolved(step, what: "waitFor target")
-            XCTAssertTrue(el.waitForExistence(timeout: timeout),
+            XCTAssertTrue(el.waitForExistence(timeout: stepTimeout(step)),
                           "waitFor: not found (step \(i)): \(describe(step))")
 
         case "waitGone":
             let el = try ctx.resolved(step, what: "waitGone target")
             let exp = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: el)
-            XCTAssertEqual(XCTWaiter.wait(for: [exp], timeout: timeout), .completed,
+            XCTAssertEqual(XCTWaiter.wait(for: [exp], timeout: stepTimeout(step)), .completed,
                            "waitGone: still present (step \(i)): \(describe(step))")
 
         case "assertEnabled", "assertDisabled":
@@ -228,6 +228,13 @@ public final class ScenarioPlayer {
             XCTFail("Unknown step action `\(step.action)` (step \(i))")
             throw StepError.unknownAction(step.action, ordinal: i)
         }
+    }
+
+    /// A step's own `timeout` (milliseconds, matching the JS player) overrides
+    /// the player default for its wait.
+    private func stepTimeout(_ step: Step) -> TimeInterval {
+        if let ms = step.int("timeout") { return TimeInterval(ms) / 1000 }
+        return timeout
     }
 
     private func reorderHandle(_ handles: XCUIElementQuery, _ ref: String) -> XCUIElement {
