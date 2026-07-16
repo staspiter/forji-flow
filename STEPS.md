@@ -24,7 +24,8 @@ One file per scenario, named `<scenario>.steps.json`:
 
 - `scenario` must match the filename.
 - `steps` is an ordered list; each step is `{"do": "<verb>", ...fields}`.
-- The first step is always `launch`.
+- `launch` comes before any core interaction verb (backend-setup `app:` steps
+  may precede it).
 - A failed step fails the whole scenario — a half-driven flow yields a
   meaningless shot.
 

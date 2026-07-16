@@ -37,7 +37,7 @@ for (const planted of [
   "must be NN-label",
   "duplicate shot label",
   "`hero` without a shot label",
-  "first step must be `launch`",
+  "core verb `tap` before any `launch`",
 ]) {
   check(`bad fixture reports: ${planted}`, bad.out.includes(planted), bad.out);
 }

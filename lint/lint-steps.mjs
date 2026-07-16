@@ -77,6 +77,7 @@ for (const file of files) {
   if (steps.length === 0) { err(file, "empty steps array"); continue; }
 
   const shotLabels = new Set();
+  let launched = false;
   steps.forEach((step, idx) => {
     const at = `step ${idx + 1}`;
     if (!step || typeof step !== "object" || Array.isArray(step)) {
@@ -113,8 +114,11 @@ for (const file of files) {
       err(file, `${at}: standalone \`shot\` requires \`as\``);
     }
 
-    if (idx === 0 && verb !== "launch") {
-      err(file, `first step must be \`launch\`, got \`${verb}\``);
+    // `launch` must come before any core interaction verb; app:* setup steps
+    // (backend seeding, resets) may legitimately precede it.
+    if (verb === "launch") launched = true;
+    if (!launched && CORE_VERBS.has(verb)) {
+      err(file, `core verb \`${verb}\` before any \`launch\``);
     }
 
     const label = verb === "shot" ? step.as : step.shot;
