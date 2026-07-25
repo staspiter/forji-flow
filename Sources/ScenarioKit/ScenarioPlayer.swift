@@ -315,6 +315,33 @@ public final class ScenarioContext {
     /// as `<scenario>-<label>.png` there; a hero shot also lands as `main.png`.
     public func capture(_ label: String, hero: Bool = false, step: Step? = nil) {
         if let app, let step { player.beforeShot?(app, step) }
+        // A screenshot is of the SCREEN, so anything that steals the foreground —
+        // another app, a system alert — yields a capture that is not the app under
+        // test while every assertion still passes. A scenario then reports PASS and
+        // banks a useless PNG, which is worse than failing: the shots are the
+        // artifact people actually look at. Seen for real: a blank page carrying
+        // another app's back-chevron, saved as a widget's full view.
+        //
+        // Recover before complaining. Bringing the app back is exactly the remedy
+        // for a stolen screen, and the state also reads non-foreground after a long
+        // idle wait when the app is in fact still there — failing outright on that
+        // threw away a 20-minute authoring run whose shot would have been fine.
+        // Only a screen we cannot get back is worth failing for.
+        if let app, app.state != .runningForeground {
+            app.activate()
+            let deadline = Date().addingTimeInterval(5)
+            while app.state != .runningForeground, Date() < deadline {
+                usleep(200_000)
+            }
+            guard app.state == .runningForeground else {
+                XCTFail("""
+                    shot '\(label)': the app under test is not frontmost (state \(app.state.rawValue)) \
+                    and could not be brought back — something else holds the screen, so this capture \
+                    would not show the app. Failing rather than writing a misleading shot.
+                    """)
+                return
+            }
+        }
         ScenarioCapture.capture(app: app, source: player.captureSource,
                                 scenario: scenario, label: label, hero: hero, testCase: testCase)
     }
