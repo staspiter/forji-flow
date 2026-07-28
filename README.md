@@ -1,7 +1,7 @@
-# forji-uitests
+# forji-flow
 
-The shared declarative UI-testing tool behind the `std/test-ui` forji contract
-(https://forji.ai/std/test-ui/): scenarios are **data** (`*.steps.json`, see
+The shared declarative UI-flow tool behind the `std/flow` forji contract
+(https://forji.ai/std/flow/): scenarios are **data** (`*.steps.json`, see
 [STEPS.md](STEPS.md)), a generic player drives the really-running app, and
 screenshots land in `shots/` with `shots/main.png` as the node-card hero.
 
@@ -24,7 +24,7 @@ Add the local package to the UI-test target (xcodegen `project.yml`):
 ```yaml
 packages:
   ScenarioKit:
-    path: ../path/to/forji-uitests
+    path: ../path/to/forji-flow
 targets:
   MyAppUITests:
     dependencies:
@@ -62,8 +62,8 @@ project and the `ScenarioKit` product to the UI-test target.
 ## Consuming — web
 
 ```sh
-FORJI_UITESTS=/path/to/forji-uitests
-node "$FORJI_UITESTS/js/run.mjs" --suite . [scenario...]
+FORJI_FLOW=/path/to/forji-flow
+node "$FORJI_FLOW/js/run.mjs" --suite . [scenario...]
 ```
 
 The suite provides an `app.mjs` (launch/auth/backend setup, `app:` verbs,
