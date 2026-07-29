@@ -10,9 +10,9 @@ enum ScenarioCapture {
 
     /// Attach `<scenario>/<label>` to the result bundle (`.keepAlways`) and, when
     /// `UITEST_SHOTS_DIR` is set, write `<scenario>-<label>.png` there — plus
-    /// `main.png` when this is the suite's hero shot.
+    /// `main.png` when this is the suite's poster shot.
     static func capture(app: XCUIApplication?, source: ScenarioPlayer.CaptureSource,
-                        scenario: String, label: String, hero: Bool, testCase: XCTestCase) {
+                        scenario: String, label: String, poster: Bool, testCase: XCTestCase) {
         let screenshot: XCUIScreenshot
         switch source {
         case .app: screenshot = app?.screenshot() ?? XCUIScreen.main.screenshot()
@@ -35,7 +35,7 @@ enum ScenarioCapture {
         let dirURL = URL(fileURLWithPath: dir, isDirectory: true)
         try? FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
         try? png.write(to: dirURL.appendingPathComponent("\(scenario)-\(label).png"))
-        if hero {
+        if poster {
             try? png.write(to: dirURL.appendingPathComponent("main.png"))
         }
     }

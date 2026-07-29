@@ -96,8 +96,8 @@ export class ScenarioContext {
   }
 
   /// Capture a shot: full page, or `of` region. Freezes volatile UI via the
-  /// suite hook first. Hero also lands as shots/main.png.
-  async capture(step, label, { hero = false } = {}) {
+  /// suite hook first. Poster also lands as shots/main.png.
+  async capture(step, label, { poster = false } = {}) {
     const page = this.pageFor(step);
     if (this.app.beforeShot) await this.app.beforeShot(page);
     mkdirSync(this.shotsDir, { recursive: true });
@@ -108,8 +108,8 @@ export class ScenarioContext {
     } else {
       await page.screenshot({ path, animations: "disabled" });
     }
-    if (hero) copyFileSync(path, join(this.shotsDir, "main.png"));
-    this.log(`  shot ${this.scenario}-${label}.png${hero ? " (hero → main.png)" : ""}`);
+    if (poster) copyFileSync(path, join(this.shotsDir, "main.png"));
+    this.log(`  shot ${this.scenario}-${label}.png${poster ? " (poster → main.png)" : ""}`);
   }
 
   /// Assert the failure guards collected nothing (called at scenario end).
@@ -144,7 +144,7 @@ export async function playScenario(plan, ctx) {
   for (const step of steps) {
     await perform(step, ctx);
     const label = step.do === "shot" ? step.as : step.shot;
-    if (label) await ctx.capture(step, label, { hero: step.hero === true });
+    if (label) await ctx.capture(step, label, { poster: step.poster === true });
   }
   ctx.checkErrors();
 }

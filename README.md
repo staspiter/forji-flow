@@ -3,7 +3,7 @@
 The shared declarative UI-flow tool behind the `std/flow` forji contract
 (https://forji.ai/std/flow/): scenarios are **data** (`*.steps.json`, see
 [STEPS.md](STEPS.md)), a generic player drives the really-running app, and
-screenshots land in `shots/` with `shots/main.png` as the node-card hero.
+screenshots land in `shots/` with `shots/main.png` as the node-card poster.
 
 One vocabulary, one player per platform — projects register their app-specific
 `app:` verbs instead of forking the engine.

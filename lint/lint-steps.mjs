@@ -43,7 +43,7 @@ for (const arg of args) {
 
 let errors = 0;
 let warnings = 0;
-let heroes = 0;
+let posters = 0;
 const err = (file, msg) => { errors++; console.error(`✗ ${file}: ${msg}`); };
 const warn = (file, msg) => { warnings++; console.error(`⚠ ${file}: ${msg}`); };
 
@@ -130,18 +130,18 @@ for (const file of files) {
       } else {
         shotLabels.add(label);
       }
-      if (step.hero === true) heroes++;
-    } else if (step.hero === true) {
-      err(file, `${at}: \`hero\` without a shot label`);
+      if (step.poster === true) posters++;
+    } else if (step.poster === true) {
+      err(file, `${at}: \`poster\` without a shot label`);
     }
   });
 }
 
-if (heroes === 0 && errors === 0 && files.length > 0) {
-  warn("(suite)", "no `hero` shot — no shots/main.png will be produced, the node card stays empty");
+if (posters === 0 && errors === 0 && files.length > 0) {
+  warn("(suite)", "no `poster` shot — no shots/main.png will be produced, the node card stays empty");
 }
-if (heroes > 1) {
-  err("(suite)", `${heroes} hero shots — exactly one per suite designates shots/main.png`);
+if (posters > 1) {
+  err("(suite)", `${posters} poster shots — exactly one per suite designates shots/main.png`);
 }
 
 const n = files.length;

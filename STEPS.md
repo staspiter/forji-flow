@@ -17,7 +17,7 @@ One file per scenario, named `<scenario>.steps.json`:
     { "do": "launch", "state": "signedOut" },
     { "do": "type",   "id": "signin.nickname", "text": "demo" },
     { "do": "tap",    "label": "Continue" },
-    { "do": "waitFor","contains": "Welcome", "shot": "01-welcome", "hero": true }
+    { "do": "waitFor","contains": "Welcome", "shot": "01-welcome", "poster": true }
   ]
 }
 ```
@@ -62,7 +62,7 @@ Interaction verbs take **exactly one** of:
   succeeds; `{"do": "shot", "as": "NN-label"}` captures standalone.
 - Labels are `NN-label` (e.g. `01-lobby`) and unique per scenario — shots file
   in order as `shots/<scenario>-NN-label.png`.
-- Exactly **one** shot per suite carries `"hero": true` — it is also written as
+- Exactly **one** shot per suite carries `"poster": true` — it is also written as
   `shots/main.png`, the image the suite's node card shows.
 
 ## App-specific verbs: the `app:` namespace
@@ -89,5 +89,5 @@ scenario.
 ## Lint
 
 `node lint/lint-steps.mjs <suite-dir>` is the offline gate every suite exposes
-as its `test` process: schema, verbs, selectors, shot labels, hero count. No
+as its `test` process: schema, verbs, selectors, shot labels, poster count. No
 device, no browser, no dependencies.

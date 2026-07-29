@@ -86,7 +86,7 @@ public final class ScenarioPlayer {
         for step in plan.steps {
             try perform(step, ctx: ctx)
             if let label = step.shotLabel {
-                ctx.capture(label, hero: step.hero, step: step)
+                ctx.capture(label, poster: step.poster, step: step)
             }
         }
     }
@@ -312,8 +312,8 @@ public final class ScenarioContext {
 
     /// Capture a screenshot: attach to the result bundle and, when
     /// `UITEST_SHOTS_DIR` is set (via `TEST_RUNNER_UITEST_SHOTS_DIR`), write it
-    /// as `<scenario>-<label>.png` there; a hero shot also lands as `main.png`.
-    public func capture(_ label: String, hero: Bool = false, step: Step? = nil) {
+    /// as `<scenario>-<label>.png` there; a poster shot also lands as `main.png`.
+    public func capture(_ label: String, poster: Bool = false, step: Step? = nil) {
         if let app, let step { player.beforeShot?(app, step) }
         // A screenshot is of the SCREEN, so anything that steals the foreground —
         // another app, a system alert — yields a capture that is not the app under
@@ -343,6 +343,6 @@ public final class ScenarioContext {
             }
         }
         ScenarioCapture.capture(app: app, source: player.captureSource,
-                                scenario: scenario, label: label, hero: hero, testCase: testCase)
+                                scenario: scenario, label: label, poster: poster, testCase: testCase)
     }
 }

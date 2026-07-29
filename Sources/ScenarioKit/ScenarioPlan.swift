@@ -13,13 +13,13 @@ import Foundation
 ///     { "do": "launch", "state": "signedOut" },
 ///     { "do": "type",   "id": "signin.nickname", "text": "demo" },
 ///     { "do": "tap",    "id": "signin.continue" },
-///     { "do": "waitFor","label": "Welcome", "shot": "01-welcome", "hero": true }
+///     { "do": "waitFor","label": "Welcome", "shot": "01-welcome", "poster": true }
 ///   ]
 /// }
 /// ```
 ///
 /// A `shot: "NN-label"` on any step (or a standalone `{ "do": "shot", "as": … }`)
-/// captures a screenshot after that step; `"hero": true` additionally copies it
+/// captures a screenshot after that step; `"poster": true` additionally copies it
 /// to `shots/main.png` — the node-card image.
 ///
 /// Core actions live in `ScenarioPlayer`; app-specific moves use the `app:`
@@ -96,8 +96,8 @@ public struct Step {
     /// The screenshot label this step carries, if any: `shot` (inline) or `as`
     /// (on a standalone `{ "do": "shot" }`). `NN-label` so shots file ordered.
     public let shotLabel: String?
-    /// This step's shot is the suite hero — also written as `shots/main.png`.
-    public let hero: Bool
+    /// This step's shot is the suite poster — also written as `shots/main.png`.
+    public let poster: Bool
     /// 1-based position in the scenario, for failure messages.
     public let ordinal: Int
     /// The full JSON object — app verbs and launch hooks read extra fields here.
@@ -114,7 +114,7 @@ public struct Step {
         self.placeholderPrefix = dict["placeholderPrefix"] as? String
         self.text = dict["text"] as? String
         self.shotLabel = (dict["shot"] as? String) ?? (dict["as"] as? String)
-        self.hero = dict["hero"] as? Bool ?? false
+        self.poster = dict["poster"] as? Bool ?? false
         self.ordinal = ordinal
         self.raw = dict
     }

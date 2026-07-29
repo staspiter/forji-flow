@@ -7,7 +7,7 @@
     { "do": "shot" },
     { "do": "waitFor", "id": "x", "shot": "bad label" },
     { "do": "waitFor", "id": "y", "shot": "01-dup" },
-    { "do": "waitFor", "id": "z", "shot": "01-dup", "hero": true },
-    { "do": "tap", "hero": true }
+    { "do": "waitFor", "id": "z", "shot": "01-dup", "poster": true },
+    { "do": "tap", "poster": true }
   ]
 }
