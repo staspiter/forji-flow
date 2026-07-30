@@ -19,7 +19,7 @@
 // own node_modules) — this repo installs nothing.
 "use strict";
 
-import { readdirSync, readFileSync, mkdirSync, rmSync } from "node:fs";
+import { readdirSync, readFileSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
@@ -84,15 +84,25 @@ for (const name of scenarios) {
     console.log(`    PASS`);
   } catch (e) {
     failed++;
-    console.error(`    FAIL  ${e && e.message ? e.message : e}`);
+    const msg = e && e.message ? e.message : String(e);
+    // The failure lands in the journal too, so the log file is the WHOLE
+    // story in one place — what the page was saying, and what tripped.
+    ctx.note("FAIL", msg);
+    console.error(`    FAIL  ${msg}`);
     try {
       if (ctx.page) {
         mkdirSync(join(suiteDir, "out"), { recursive: true });
         await ctx.page.screenshot({ path: join(suiteDir, "out", `${name}-failure.png`) });
-        console.error(`          failure shot: out/${name}-failure.png`);
+        console.error(`          failure shot: out/${name}-failure.png · log: out/${name}.log`);
       }
     } catch { /* the page may be gone */ }
   } finally {
+    // The journal is written PASS or FAIL: yesterday's green run is the
+    // baseline you diagnose today's red one against.
+    try {
+      mkdirSync(join(suiteDir, "out"), { recursive: true });
+      writeFileSync(join(suiteDir, "out", `${name}.log`), ctx.journalText());
+    } catch { /* a read-only checkout still plays */ }
     for (const c of ctx.contexts) await c.close().catch(() => {});
   }
 }
