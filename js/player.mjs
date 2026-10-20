@@ -32,11 +32,33 @@ export class ScenarioContext {
     this.scenario = scenario;
     this.shotsDir = shotsDir;
     this.timeout = timeout;
-    this.log = log;
+    this.log = (m) => { log(m); this.note("log", String(m).trim()); };
     this.pages = new Map();   // actor -> page
     this.contexts = [];       // every context opened (closed by run.mjs)
     this.page = null;         // the active (last-launched / step-addressed) page
     this.errors = [];         // failure-guard collection across all pages
+    // The journal: everything the run saw, in order — every console line the
+    // page printed, every step boundary, every shot, and the harness's OWN
+    // failures. One file is then the whole story of a run, which is what a
+    // human needs when something fails mid-scenario: the guard's one-line
+    // message says WHAT tripped, the journal says what the page was saying at
+    // the time. Written by run.mjs to <suite>/out/<scenario>.log.
+    this.t0 = Date.now();
+    this.stepOrdinal = 0;
+    this.journal = [];
+  }
+
+  /// One journal line. `kind` is a short tag: console.log/.warn/.error,
+  /// pageerror, requestfailed, response, step, shot, log, FAIL.
+  note(kind, text) {
+    this.journal.push({ ms: Date.now() - this.t0, step: this.stepOrdinal, kind, text });
+  }
+
+  /// The journal formatted for the log file.
+  journalText() {
+    return this.journal
+      .map((e) => `[+${String(e.ms).padStart(6)}ms] [step ${String(e.step).padStart(2)}] ${e.kind}: ${e.text}`)
+      .join("\n") + "\n";
   }
 
   /// Resolve a step's page: its `actor`'s page, else the active one.
@@ -57,7 +79,8 @@ export class ScenarioContext {
     const context = await this.browser.newContext(opts);
     this.contexts.push(context);
     const page = await context.newPage();
-    attachFailureGuards(page, this.errors, this.app.guardIgnore || []);
+    attachFailureGuards(page, this.errors, this.app.guardIgnore || [],
+      (kind, text) => this.note(kind, text));
     this.pages.set(step.actor || "default", page);
     this.page = page;
     return page;
@@ -97,16 +120,24 @@ export class ScenarioContext {
 
   /// Capture a shot: full page, or `of` region. Freezes volatile UI via the
   /// suite hook first. Poster also lands as shots/main.png.
+  ///
+  /// The screenshot options come from the suite when it declares them
+  /// (`app.shotOptions`), else default to `animations: "disabled"`. That
+  /// default is SLOW — playwright's animation-quiescence wait costs about a
+  /// second per shot against a canvas app — so a suite whose `beforeShot`
+  /// already freezes everything volatile should declare `shotOptions: {}`
+  /// and capture in tens of milliseconds instead.
   async capture(step, label, { poster = false } = {}) {
     const page = this.pageFor(step);
     if (this.app.beforeShot) await this.app.beforeShot(page);
     mkdirSync(this.shotsDir, { recursive: true });
     const path = join(this.shotsDir, `${this.scenario}-${label}.png`);
+    const opts = { path, ...(this.app.shotOptions || { animations: "disabled" }) };
     if (step && step.of) {
       const region = this.locator({ ...step, id: step.of, label: undefined, contains: undefined, ordinal: step.ordinal });
-      await region.screenshot({ path, animations: "disabled" });
+      await region.screenshot(opts);
     } else {
-      await page.screenshot({ path, animations: "disabled" });
+      await page.screenshot(opts);
     }
     if (poster) copyFileSync(path, join(this.shotsDir, "main.png"));
     this.log(`  shot ${this.scenario}-${label}.png${poster ? " (poster → main.png)" : ""}`);
@@ -122,19 +153,31 @@ export class ScenarioContext {
 
 // Console-error / pageerror / requestfailed / 4xx-5xx guards, collected into
 // `sink`; `ignore` is a list of RegExps matched against the offending URL.
-export function attachFailureGuards(page, sink, ignore = []) {
+// `note`, when given, journals the FULL console stream (every level, ignored
+// or not) plus every guard event — the record a human reads after a failure.
+export function attachFailureGuards(page, sink, ignore = [], note = null) {
   const ignored = (url) => url.endsWith("/favicon.ico") || ignore.some((re) => re.test(url));
   page.on("console", (msg) => {
+    if (note) note("console." + msg.type(), msg.text());
     if (msg.type() === "error" && !ignored(msg.location().url || "")) {
       sink.push("console.error: " + msg.text());
     }
   });
-  page.on("pageerror", (err) => sink.push("pageerror: " + (err && err.message ? err.message : err)));
+  page.on("pageerror", (err) => {
+    const text = (err && err.message ? err.message : String(err));
+    if (note) note("pageerror", text);
+    sink.push("pageerror: " + text);
+  });
   page.on("requestfailed", (req) => {
-    if (!ignored(req.url())) sink.push("requestfailed: " + req.url() + " — " + (req.failure() && req.failure().errorText));
+    const text = req.url() + " — " + (req.failure() && req.failure().errorText);
+    if (note) note("requestfailed", text);
+    if (!ignored(req.url())) sink.push("requestfailed: " + text);
   });
   page.on("response", (res) => {
-    if (res.status() >= 400 && !ignored(res.url())) sink.push("response " + res.status() + ": " + res.url());
+    if (res.status() >= 400) {
+      if (note) note("response", res.status() + " " + res.url());
+      if (!ignored(res.url())) sink.push("response " + res.status() + ": " + res.url());
+    }
   });
 }
 
@@ -142,6 +185,8 @@ export function attachFailureGuards(page, sink, ignore = []) {
 export async function playScenario(plan, ctx) {
   const steps = plan.steps.map((s, i) => ({ ...s, ordinal: i + 1 }));
   for (const step of steps) {
+    ctx.stepOrdinal = step.ordinal;
+    ctx.note("step", step.do + (step.id ? ` ${step.id}` : "") + (step.shot ? ` → shot ${step.shot}` : ""));
     await perform(step, ctx);
     const label = step.do === "shot" ? step.as : step.shot;
     if (label) await ctx.capture(step, label, { poster: step.poster === true });
